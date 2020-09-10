@@ -5,14 +5,13 @@ use formatter::Formatter;
 
 use r#type::Type;
 
-
 /// Defines an enum variant.
 #[derive(Debug, Clone)]
 pub struct Variant {
     name: String,
     fields: Fields,
+    documentation: Vec<String>,
 }
-
 
 impl Variant {
     /// Return a new enum variant with the given name.
@@ -20,6 +19,7 @@ impl Variant {
         Variant {
             name: name.to_string(),
             fields: Fields::Empty,
+            documentation: Vec::new(),
         }
     }
 
@@ -37,9 +37,19 @@ impl Variant {
         self.fields.tuple(ty);
         self
     }
+    /// Add a documentation to the variant
+    pub fn doc(&mut self, documentation: Vec<&str>) -> &mut Self {
+        self.documentation = documentation.iter().map(|doc| doc.to_string()).collect();
+        self
+    }
 
     /// Formats the variant using the given formatter.
     pub fn fmt(&self, fmt: &mut Formatter) -> fmt::Result {
+        if !self.documentation.is_empty() {
+            for doc in &self.documentation {
+                write!(fmt, "/// {}\n", doc)?;
+            }
+        }
         write!(fmt, "{}", self.name)?;
         self.fields.fmt(fmt)?;
         write!(fmt, ",\n")?;
